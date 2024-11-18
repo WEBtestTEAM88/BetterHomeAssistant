@@ -1,0 +1,8 @@
+FROM eclipse-mosquitto:latest
+
+# Copy custom configuration
+COPY mosquitto.conf /mosquitto/config/mosquitto.conf
+
+# Create required directories
+RUN mkdir -p /mosquitto/data /mosquitto/log
+RUN chown -R mosquitto:mosquitto /mosquitto 

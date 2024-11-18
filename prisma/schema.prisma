@@ -1,0 +1,98 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("MONGODB_URI")
+}
+
+model User {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  email       String   @unique
+  password    String
+  name        String?
+  role        Role     @default(USER)
+  permissions Permissions?
+  homeId      String?  @db.ObjectId
+  home        Home?    @relation(fields: [homeId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Home {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  users     User[]
+  rooms     Room[]
+  devices   Device[]
+  scenes    Scene[]
+  rules     AutomationRule[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Room {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  floor     Int?
+  home      Home     @relation(fields: [homeId], references: [id])
+  homeId    String   @db.ObjectId
+  devices   Device[]
+}
+
+model Device {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  type        String
+  state       Boolean  @default(false)
+  value       Float?
+  room        Room     @relation(fields: [roomId], references: [id])
+  roomId      String   @db.ObjectId
+  home        Home     @relation(fields: [homeId], references: [id])
+  homeId      String   @db.ObjectId
+  history     DeviceHistory[]
+  lastUpdated DateTime @updatedAt
+}
+
+model DeviceHistory {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  device    Device   @relation(fields: [deviceId], references: [id])
+  deviceId  String   @db.ObjectId
+  state     Boolean
+  value     Float?
+  timestamp DateTime @default(now())
+}
+
+model Scene {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  home        Home     @relation(fields: [homeId], references: [id])
+  homeId      String   @db.ObjectId
+  deviceStates Json    // Array of {deviceId, state, value}
+}
+
+model AutomationRule {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  home        Home     @relation(fields: [homeId], references: [id])
+  homeId      String   @db.ObjectId
+  condition   Json     // {type, deviceId, value, operator}
+  actions     Json     // Array of {deviceId, action, value}
+  active      Boolean  @default(true)
+}
+
+enum Role {
+  ADMIN
+  USER
+  GUEST
+}
+
+type Permissions {
+  canControlDevices    Boolean @default(true)
+  canCreateScenes      Boolean @default(false)
+  canCreateAutomations Boolean @default(false)
+  canViewHistory       Boolean @default(true)
+  canManageRooms      Boolean @default(false)
+  allowedRooms        String[] // Array of room IDs the user can access
+} 

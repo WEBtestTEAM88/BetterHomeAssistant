@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: ${NODE_ENV:-production}
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - MONGODB_URI=mongodb://mongodb:27017/home_automation
+      - MQTT_HOST=mosquitto
+      - MQTT_PORT=1883
+      - MQTT_WS_PORT=8888
+      - NEXTAUTH_URL=http://localhost:3000
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - DEFAULT_ADMIN_EMAIL=${DEFAULT_ADMIN_EMAIL}
+      - DEFAULT_ADMIN_PASSWORD=${DEFAULT_ADMIN_PASSWORD}
+      - MQTT_USER_PASSWORD=${MQTT_USER_PASSWORD}
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      mosquitto:
+        condition: service_started
+    volumes:
+      - .:/app
+      - /app/node_modules
+    networks:
+      - home_automation
+    command: >
+      sh -c "if [ \"$${NODE_ENV:-production}\" = \"development\" ]; then
+             npm run dev;
+             else
+             npm start;
+             fi"
+
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - home_automation
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command: ["mongod", "--bind_ip_all"]
+
+  mosquitto:
+    build:
+      context: .
+      dockerfile: Dockerfile.mosquitto
+    ports:
+      - "1883:1883"
+      - "8888:8888"
+    volumes:
+      - mosquitto_data:/mosquitto/data
+      - mosquitto_log:/mosquitto/log
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
+    networks:
+      - home_automation
+
+networks:
+  home_automation:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+  mosquitto_data:
+  mosquitto_log: 

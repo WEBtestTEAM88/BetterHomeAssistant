@@ -1,0 +1,53 @@
+{
+  "dependencies": {
+    "@emotion/react": "^11.11.3",
+    "@emotion/styled": "^11.11.0",
+    "@mui/icons-material": "^5.15.6",
+    "@mui/material": "^5.15.6",
+    "@prisma/client": "^5.8.1",
+    "aedes": "^0.50.0",
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.3.1",
+    "express-rate-limit": "^7.4.1",
+    "mongoose": "^8.1.1",
+    "mqtt": "^5.3.5",
+    "next": "^14.2.18",
+    "next-auth": "^4.24.5",
+    "prisma": "^5.8.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "recharts": "^2.10.4",
+    "websocket-stream": "^5.3.0",
+    "zod": "^3.23.8"
+  },
+  "scripts": {
+    "dev": "concurrently \"npm run dev:next\" \"npm run dev:mqtt\"",
+    "dev:next": "next dev",
+    "dev:mqtt": "ts-node --project tsconfig.mqtt.json server/mqtt-server.ts",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "setup": "npm install && npx prisma generate && npx prisma db push && npm run init-db",
+    "clean": "rm -rf .next node_modules",
+    "clean:full": "npm run clean && rm -rf dist",
+    "dev:docker": "docker-compose -f docker-compose.yml -f docker-compose.dev.yml up",
+    "dev:docker:build": "docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build",
+    "prod:docker": "docker-compose up -d",
+    "prod:docker:build": "docker-compose up -d --build",
+    "init-db": "ts-node scripts/init-db.ts"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^20.11.5",
+    "@types/react": "^18.2.48",
+    "@types/react-dom": "^18.2.18",
+    "@types/recharts": "^1.8.29",
+    "concurrently": "^8.2.2",
+    "eslint": "^8.56.0",
+    "eslint-config-next": "14.1.0",
+    "husky": "^9.0.6",
+    "prettier": "^3.2.4",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  }
+}
